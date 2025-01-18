@@ -37,7 +37,6 @@ public class Notification {
     @PrePersist
     protected void onUpdate() {
         this.createdAt = new Date();
-        System.out.println("onUpdate");
     }
 
 	public Long getId() {
