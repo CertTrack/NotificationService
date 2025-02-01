@@ -18,7 +18,6 @@ public class KafkaListeners {
 
     @KafkaListener(topics = "notification", groupId = "certTrack", containerFactory = "kafkaListenerContainerFactory")
     public void listener(Map<String, String> message) throws MessagingException {
-        System.out.println(message);
         Long userId = Long.valueOf(message.get("userId"));
         String msg = message.get("message");
         String subject = message.get("subject");

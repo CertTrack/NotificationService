@@ -28,8 +28,7 @@ public class NotificationService {
 	
 	public void sendsomemessage(Long userId, 
 								String body, 
-								String subject/*, 
-								String attchment*/) throws MessagingException {
+								String subject) throws MessagingException {
 		
 		String query = "SELECT email FROM users WHERE id = ?"; 
 		String toemail = jdbcTemplate.queryForObject(query, String.class, userId);

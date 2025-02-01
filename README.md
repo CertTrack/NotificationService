@@ -18,7 +18,7 @@ The Notification Service is responsible for handling user notifications. It list
 - **SMTP**: spring starter mail for sending notification. 
 - **Spring Kafka**: as a cunsumer of notifications.
 - **Spring Cloud Eureka Client**
-
+- **Swagger**: For API documentation and testing.
 ---
 
 ## Kafka Integration

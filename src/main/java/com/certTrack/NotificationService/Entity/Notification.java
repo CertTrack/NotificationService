@@ -80,7 +80,6 @@ public class Notification {
 
 	public Notification() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
