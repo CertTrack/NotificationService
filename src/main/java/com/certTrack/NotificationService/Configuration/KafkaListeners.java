@@ -9,19 +9,20 @@ import org.springframework.stereotype.Component;
 import com.certTrack.NotificationService.Service.NotificationService;
 
 import jakarta.mail.MessagingException;
+import lombok.RequiredArgsConstructor;
 
 @Component
 public class KafkaListeners {
-
-    @Autowired
+	
+	@Autowired
     NotificationService notificationService;
 
     @KafkaListener(topics = "notification", groupId = "certTrack", containerFactory = "kafkaListenerContainerFactory")
     public void listener(Map<String, String> message) throws MessagingException {
         Long userId = Long.valueOf(message.get("userId"));
-        String msg = message.get("message");
-        String subject = message.get("subject");
-        notificationService.sendsomemessage(userId, msg, subject);
+        Long courseId = Long.valueOf(message.get("courseId"));
+        String type = message.get("type");
+        notificationService.sendsomemessage(userId, courseId, type);
     }
 }
 
