@@ -46,30 +46,38 @@ public class NotificationService {
 		String queryForUserName = "SELECT email FROM users WHERE id = ?"; 
 		String toemail = jdbcTemplate.queryForObject(queryForUserName, String.class, userId);
 		
-		String queryForCourseName = "SELECT name FROM course WHERE id = ?"; 
-		String courseName = jdbcTemplate.queryForObject(queryForCourseName, String.class, userId);
-		
-		//get certificate file
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		String token ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxNzQ5OTQ0NjYzLCJlIjoiZGltYTY4MzY3NTNAZ21haWwuY29tIiwiYSI6WyJST0xFX0FETUlOIl19.1szC99iZjBONYspFlZrtLxKVIkSn4i2eLDGJT-LuoGI"; //tokenGenerator.generateServiceToken(Integer.valueOf(userId + ""));
-		headers.setBearerAuth(token);
-		HttpEntity<String> entity = new HttpEntity<>(null, headers);
-		String url = "http://localhost:8083/certifications/usercourse?userId="+userId+"&courseId="+courseId;
-		ResponseEntity<ByteArrayResource> certificate = restTemplate.exchange(url, HttpMethod.GET, entity, ByteArrayResource.class);
-		ByteArrayResource certificateFile = certificate.getBody();
+        String urlForCourseName = "http://localhost:8082/courses/nameById?id="+courseId;
+        String courseName = restTemplate.getForObject(urlForCourseName, String.class);
+        
+
 
 		String body;
 		String subject;
+		ByteArrayResource certificateFile = null;
+		
 		
 		if(type.equals("1")) {
+			//get certificate file
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			String token ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxNzQ5OTQ0NjYzLCJlIjoiZGltYTY4MzY3NTNAZ21haWwuY29tIiwiYSI6WyJST0xFX0FETUlOIl19.1szC99iZjBONYspFlZrtLxKVIkSn4i2eLDGJT-LuoGI"; //tokenGenerator.generateServiceToken(Integer.valueOf(userId + ""));
+			headers.setBearerAuth(token);
+			HttpEntity<String> entity = new HttpEntity<>(null, headers);
+			String urlForCertFile = "http://localhost:8083/certifications/usercourse?userId="+userId+"&courseId="+courseId;
+			ResponseEntity<ByteArrayResource> certificate = restTemplate.exchange(urlForCertFile, HttpMethod.GET, entity, ByteArrayResource.class);
+			certificateFile = certificate.getBody();
 			subject = "Completion of the java for beginers course";
 			body = "Hello, we congratulate you on completing the course" + courseName + "\n"
 					+ "Also attached to this letter is your certificate!";
+		}else if(type.equals("2")) {
+			subject = "Start studying the course";
+			body = "Hello, we congratulate you on the start of your course " + courseName + "\n"
+					+ "We wish you patience, diligence and new useful knowledge";
 		}else {
 			subject = "default subject";
 			body = "default body";
 		}
+		
 		
 		
 		MimeMessage message = javaMailSender.createMimeMessage();
@@ -78,8 +86,9 @@ public class NotificationService {
 		helper.setTo(toemail);
 		helper.setText(body);
 		helper.setSubject(subject);
-		helper.addAttachment("certificate.pdf", certificateFile);
-		
+		if(type.equals("1")) {
+			helper.addAttachment("certificate.pdf", certificateFile);
+		}
 		javaMailSender.send(message);
 		notificationRepository.save(new Notification(userId, body, new Date()));
 	}
