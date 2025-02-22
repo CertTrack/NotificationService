@@ -33,8 +33,8 @@ public class NotificationService {
 	private RestTemplate restTemplate;
 	@Autowired
 	private JavaMailSender javaMailSender;
-	//@Autowired
-	//private TokenGenerator tokenGenerator;
+	@Autowired
+	private TokenGenerator tokenGenerator;
 	@Autowired
 	private NotificationRepository notificationRepository;
 	
@@ -43,8 +43,11 @@ public class NotificationService {
 								Long courseId, 
 								String type) throws MessagingException {
 		
-		String queryForUserName = "SELECT email FROM users WHERE id = ?"; 
-		String toemail = jdbcTemplate.queryForObject(queryForUserName, String.class, userId);
+		String queryForUserEmail = "SELECT email FROM users WHERE id = ?"; 
+		String toemail = jdbcTemplate.queryForObject(queryForUserEmail, String.class, userId);
+		
+		String queryForUserName= "SELECT name FROM users WHERE id = ?"; 
+		String userName = jdbcTemplate.queryForObject(queryForUserName, String.class, userId);
 		
         String urlForCourseName = "http://localhost:8082/courses/nameById?id="+courseId;
         String courseName = restTemplate.getForObject(urlForCourseName, String.class);
@@ -60,18 +63,19 @@ public class NotificationService {
 			//get certificate file
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
-			String token ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxNzQ5OTQ0NjYzLCJlIjoiZGltYTY4MzY3NTNAZ21haWwuY29tIiwiYSI6WyJST0xFX0FETUlOIl19.1szC99iZjBONYspFlZrtLxKVIkSn4i2eLDGJT-LuoGI"; //tokenGenerator.generateServiceToken(Integer.valueOf(userId + ""));
+			//String token ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxNzQ5OTQ0NjYzLCJlIjoiZGltYTY4MzY3NTNAZ21haWwuY29tIiwiYSI6WyJST0xFX0FETUlOIl19.1szC99iZjBONYspFlZrtLxKVIkSn4i2eLDGJT-LuoGI"; 
+			String token = tokenGenerator.generateServiceToken(Integer.valueOf(userId + ""));
 			headers.setBearerAuth(token);
 			HttpEntity<String> entity = new HttpEntity<>(null, headers);
 			String urlForCertFile = "http://localhost:8083/certifications/usercourse?userId="+userId+"&courseId="+courseId;
 			ResponseEntity<ByteArrayResource> certificate = restTemplate.exchange(urlForCertFile, HttpMethod.GET, entity, ByteArrayResource.class);
 			certificateFile = certificate.getBody();
 			subject = "Completion of the java for beginers course";
-			body = "Hello, we congratulate you on completing the course" + courseName + "\n"
+			body = "Hello, " + userName + "we congratulate you on completing the course" + courseName + "\n"
 					+ "Also attached to this letter is your certificate!";
 		}else if(type.equals("2")) {
 			subject = "Start studying the course";
-			body = "Hello, we congratulate you on the start of your course " + courseName + "\n"
+			body = "Hello, " + userName + "we congratulate you on the start of your course " + courseName + "\n"
 					+ "We wish you patience, diligence and new useful knowledge";
 		}else {
 			subject = "default subject";
